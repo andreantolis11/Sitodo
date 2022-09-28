@@ -19,8 +19,6 @@ public class TodoListController {
 	@Autowired
     private TodoListService todoListService;
 	
-	@Autowired
-	private TodoListRepository todoListRepository;
 	
     @Autowired
     public void setTodoListService(TodoListService todoListService) {
@@ -34,9 +32,9 @@ public class TodoListController {
         return "list";
     }
     
-//    @PostMapping("/list")
-//    public String createToDo(@RequestParam("item_text") String text) {
-//    	todoListService.addTodoItem(new TodoItem(text));
-//    	return "redirect:/list";
-//    }
+    @PostMapping("/list")
+    public String createToDo(@RequestParam("item_text") String text) {
+    	todoListService.addTodoItem(new TodoItem(text));
+    	return "redirect:/list";
+    }
 }
