@@ -34,10 +34,9 @@ public class TodoListController {
         return "list";
     }
     
-    @PostMapping("/list")
-    @ResponseBody
-    public String createToDo(@RequestParam("item_text") String text) {
-    	todoListService.addTodoItem(new TodoItem(text));
-    	return "redirect:/list";
-    }
+//    @PostMapping("/list")
+//    public String createToDo(@RequestParam("item_text") String text) {
+//    	todoListService.addTodoItem(new TodoItem(text));
+//    	return "redirect:/list";
+//    }
 }
