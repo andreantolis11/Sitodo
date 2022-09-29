@@ -75,15 +75,16 @@ class TodoListControllerTest {
         );
     }
 
-    @Test
-    @DisplayName("Suppose the given ID does not exist, HTTP GET '/list/{id}' returns an error page")
-    void showList_byId_notFound() throws Exception {
-        when(todoListService.getTodoListById(anyLong())).thenThrow(NoSuchElementException.class);
+//    @Test
+//    @DisplayName("Suppose the given ID does not exist, HTTP GET '/list/{id}' returns an error page")
+//    void showList_byId_notFound() throws Exception {
+//        when(todoListService.getTodoListById(anyLong())).thenThrow(NoSuchElementException.class);
+//
+//        mockMvc.perform(get("/list/1")).andExpectAll(
+//            content().string(containsString("Not Found"))
+//        );
+//    }
 
-        mockMvc.perform(get("/list/1")).andExpectAll(
-            content().string(containsString("Not Found"))
-        );
-    }
 
     @Test
     @DisplayName("HTTP GET '/list/{id}/update/{item_id}' successfully updated status of an item")
