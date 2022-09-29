@@ -15,7 +15,7 @@ import com.example.andre.sitodo.model.TodoItem;
 import com.example.andre.sitodo.repository.TodoListRepository;
 import com.example.andre.sitodo.service.TodoListService;
 @Controller
-public class TodoListController {
+public class TodoListController { 
 	@Autowired
     private TodoListService todoListService;
 	
