@@ -1,47 +1,41 @@
 package com.example.andre.sitodo.controller;
-import org.junit.jupiter.api.Test;
-import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Tag;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
-
-import com.example.andre.sitodo.model.TodoItem;
-import com.example.andre.sitodo.service.TodoListService;
-
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.hamcrest.Matchers.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.TEXT_HTML;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
 import java.util.List;
+import java.util.NoSuchElementException;
+
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.web.servlet.MockMvc;
+
+import com.example.andre.sitodo.model.TodoItem;
+import com.example.andre.sitodo.model.TodoList;
+import com.example.andre.sitodo.service.TodoListService;
 
 @WebMvcTest(TodoListController.class)
-@Tag("unit")
-public class TodoListControllerTest {
+class TodoListControllerTest {
+
     @Autowired
     private MockMvc mockMvc;
 
     @MockBean
     private TodoListService todoListService;
 
-    // New annotation!
-    // @DisplayName allows you to customise the name of a test case.
     @Test
     @DisplayName("HTTP GET '/list' retrieves list view")
-    void showList_correctView() throws Exception {
+    void showList_resolvesToIndex() throws Exception {
         mockMvc.perform(get("/list")).andExpectAll(
             status().isOk(),
             content().contentTypeCompatibleWith(TEXT_HTML),
@@ -52,7 +46,7 @@ public class TodoListControllerTest {
 
     @Test
     @DisplayName("HTTP GET '/list' returns an HTML page")
-    void showList_returnHtml() throws Exception {
+    void showList_returnsHtml() throws Exception {
         mockMvc.perform(get("/list")).andExpectAll(
             status().isOk(),
             content().contentTypeCompatibleWith(TEXT_HTML),
@@ -62,44 +56,59 @@ public class TodoListControllerTest {
     }
 
     @Test
-    @DisplayName("HTTP GET '/list' returns an HTML page with non-empty list")
-    void showList_withSampleData_ok() throws Exception {
-        TodoItem mockTodoItem = new TodoItem("Buy milk");
-        when(todoListService.getTodoItems()).thenReturn(List.of(mockTodoItem));
+    @DisplayName("HTTP GET '/list/{id}' returns an HTML page with non-empty list")
+    void showList_byId_returnsHtml() throws Exception {
+        TodoItem mockTodoItem = createMockTodoItem(1L, "Buy milk");
+        TodoList mockList = mock(TodoList.class);
+        when(mockList.getId()).thenReturn(1L);
+        when(mockList.getItems()).thenReturn(List.of(mockTodoItem));
+        when(todoListService.getTodoListById(anyLong())).thenReturn(mockList);
 
-        mockMvc.perform(get("/list")).andExpectAll(
+        mockMvc.perform(get("/list/1")).andExpectAll(
             status().isOk(),
             content().contentTypeCompatibleWith(TEXT_HTML),
             content().encoding(UTF_8),
-            content().string(containsString("Buy milk"))
-        );
-    }
-    
-    @Test
-    @DisplayName("HTTP POST Redirect when create")
-    void isRedirectAfterCreate_ok() throws Exception {
-        TodoItem mockItem = new TodoItem("milk");
-        when(todoListService.addTodoItem(mockItem)).thenReturn(mockItem);
-
-        mockMvc.perform(post("/list").param("item_text", "milk")).andExpectAll(
-            status().is3xxRedirection(),
-            redirectedUrl("/list")
+            content().string(containsString("<table")),
+            content().string(containsString("<tr")),
+            content().string(containsString("Buy milk")),
+            content().string(containsString("</html>"))
         );
     }
 
     @Test
-    @DisplayName("HTTP POST when after create is match with assertEquals")
-    void isMatchAfterCreate_ok() throws Exception {
-        when(todoListService.getTodoItems()).thenReturn(List.of(new TodoItem("milk")));
-        
-        List<TodoItem> itemNewList = todoListService.getTodoItems();
-        boolean truFal = false;
-        for(int i = 0; i < itemNewList.size(); i++) {
-        	if(itemNewList.get(i).getTitle() == "milk") {
-        		truFal = true;
-        		break;
-        	}
-        }
-        assertEquals(truFal, true);
-    } 
+    @DisplayName("Suppose the given ID does not exist, HTTP GET '/list/{id}' returns an error page")
+    void showList_byId_notFound() throws Exception {
+        when(todoListService.getTodoListById(anyLong())).thenThrow(NoSuchElementException.class);
+
+        mockMvc.perform(get("/list/1")).andExpectAll(
+            content().string(containsString("Not Found"))
+        );
+    }
+
+    @Test
+    @DisplayName("HTTP GET '/list/{id}/update/{item_id}' successfully updated status of an item")
+    void updateItem_ok() throws Exception {
+        // TODO: Implement me!
+    }
+
+    // TODO: Create the tests for ensuring the correctness of deleteItem() method from the controller.
+
+    private TodoList createMockTodoList(Long id, TodoItem ... items) {
+        TodoList mockTodoList = mock(TodoList.class);
+
+        when(mockTodoList.getId()).thenReturn(id);
+        when(mockTodoList.getItems()).thenReturn(List.of(items));
+
+        return mockTodoList;
+    }
+
+    private TodoItem createMockTodoItem(Long id, String title) {
+        TodoItem mockTodoItem = mock(TodoItem.class);
+
+        when(mockTodoItem.getId()).thenReturn(id);
+        when(mockTodoItem.getTitle()).thenReturn(title);
+        when(mockTodoItem.getFinished()).thenCallRealMethod();
+
+        return mockTodoItem;
+    }
 }
